@@ -1,0 +1,57 @@
+■Webブックに目次をつけてみよう
+
+レポートや小説などの一連のコンテンツにおいて、ただ、つらつらと「前に」「次へ」といったリンクを連ねただけでは、なかなか読みづらい場合があります。
+前にそのサイトに訪れて途中まで読んでいった人が、今回はその続きから読みたいということもあるでしょう。そんな時に、既に読んでしまったページをふたたび一から辿っていくのは、あまりにも不便です。
+そのような時に、一連のコンテンツに先立って、先頭ページに目次をつけておくと便利でしょう。先の項で紹介した、Content Linkingコンポーネントは、このような場合にも強力な力を発揮してくれます。
+
+●ポイント
+　Content Linkingコンポーネントを利用するところは、先ほどと同じです。
+　今度はコンテンツのリストを1ページごとに追跡していくのではなく、コンテンツリンクリストファイルをチェックして、いくつのリンクが含まれているかを調べ、URLとその情報をHTMLに加工することにします。
+　また、その際、コンテンツリンクリストファイルにはコロン（：）区切りでいくつかの情報を含ませています。これを分解して展開するロジックにも、注目してみてください。
+
+●サンプル
+□index.asp
+1	<%@Language="VBScript" %>
+2	<html>
+3	<head>
+4	<title>緑栃の聖域（目次）</title>
+5	</head>
+6	<body>
+7	<h1>緑栃の聖域</h1>
+8	<%
+9	strPath="contLst.txt"
+#　コンテンツの前後関係を定義したコンテンツリンクリストファイルのファイル名を、あらかじめ変数strPathに格納しておきます。
+10	Set objLnk=Server.CreateObject("MSWC.NextLink")
+#　Content LinkingコンポーネントからNextLinkオブジェクトを生成します。
+11	Response.Write "<dl>"
+12	For i=1 To objLnk.GetListCount(strPath)
+#　コンテンツリンクリストファイルに含まれたコンテンツの数だけループを繰り返すことで、目次項目を順に出力します。
+13	　dsc=Split(objLnk.GetNthDescription(strPath,i),"：")
+#　GetNthDescriptionメソッドは、コンテンツリストのi番目のコンテンツの詳細部を取得します。ここでは、得られた説明部分をSplit関数によって「：」で分解し、配列dscに格納します。
+#　たとえば、GetNthDescriptionメソッドが
+#　star1.gif：老樹の城砦1：闇果つる古代王国アレスィア～
+#　を返したならば、Split関数によって
+#　　dsc(0)="star.gif"
+#　　dsc(1)="老樹の城砦1"
+#　　dsc(2)="闇果つる古代王国アレスィア～"
+#　のように分解されます。
+#　これらの部分は、それぞれコンテンツ先頭の画像名・タイトル・コンテンツ紹介文を示します。
+14	　Response.Write "<dt style='font-size:12pt;font-weight:bold;'>"
+15	　Response.Write "<a href='" & objLnk.GetNthURL(strPath,i) & "'>"
+16	　Response.Write "<img src='" & dsc(0) & "' border='0'>"
+17	　Response.Write dsc(1) & "</a></dt>"
+#　GetNthURLメソッドは、コンテンツリストのi番目のコンテンツのURLを取得します。15～17行目で、たとえば、
+#　<dt style='font-size:12pt;font-weight:bold;'>
+#　　<a href='chap0-2.asp'><img src='star2.gif' border='0'>老樹の城砦2</a></dt>
+#　というようなHTMLを出力します。
+18	　Response.Write "<dd>" & dsc(2) & "</dd>"
+19	Next
+20	Response.Write "</dl>"
+21	%>
+22	</body>
+23	</html>
+
+●TIPS
+△コンテンツリンクリストファイル
+　コンテンツリストファイルの詳細部には、工夫次第でさまざまな情報を含ませることができます。
+　今回の例では、コロン区切りで複数の異なる情報を記述してみましたが、この他にもHTMLやスタイルシートなど、単純なテキストに留まらない特殊な内容を記述することで、より多用な表現を実現することが可能です。

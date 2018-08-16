@@ -1,0 +1,90 @@
+■フォルダ情報を簡単に公開したい
+
+ネットワーク上で作業することの多くなった昨今では、ますます自分自身の作成した電子データをWeb上で簡単に公開したいというニーズは強まっています。しかも、データが氾濫しているだけに、ひとつひとつの文書を公開するのに、いちいちHTMLで公開のためのリンクページを作成することさえ煩雑に感じられる局面すらあります。
+そんな時に、特定のフォルダに置いたデータが、きちんとファイル情報の一覧表となってWeb上に公開できれば、どんなに便利でしょう。いちいちHTMLを記述する必要もありませんし、自動処理なので、最新の情報も正確に保持することができます。
+ここでは、そんな自動公開用フォルダシステムを作ってみることにします。
+
+●ポイント
+　ロジック的にも、やや高度なスクリプトです。
+　いきなり個々のロジックを見ていく前に、まずは大きくふたつのことをおさえておきましょう。
+(1)常に呼び出されるのは自分自身
+このフォルダシステムでは、多階層に渡るフォルダやファイルの情報を表示していますが、当然、個々のフォルダについてスクリプトを用意しているわけではありません。そもそも公開するフォルダは無限に拡張する可能性がありますし、そのたびにスクリプトを用意していたのでは、動的に公開するしくみを作った意味がありません。
+そこで今回のしくみでは、フォルダ間を移動する際にスクリプトは、常に自分自身を呼び出すことにします。つまり、引数として呼び出すフォルダ名（パス）を動的に切り替えるだけで、表示するロジックは共有しているわけです。このように、再帰的に自分自身を呼び出す方法は、スクリプトをコンパクトにする場合にきわめて有効ですし、今後も多く用いる機会があるはずですので、是非とも考え方としておさえておきたいところです。
+
+●サンプル
+□cabi.asp
+1	<%@Language="VBScript" %>
+2	<html>
+3	<head>
+4	<title>共有ファイルサーバ</title>
+5	</head>
+6	<body>
+7	<table>
+8	<tr>
+9	<td align="right">
+10	<%
+11	If Request.QueryString="" Then
+12	　curPath="./doc"
+13	Else
+14	　curPath=Replace(Request.QueryString("path"),"\","/")
+15	　curPath="." & Mid(curPath,InStr(curPath,"/doc"))
+16	End If
+17	Set fso=Server.CreateObject("Scripting.FileSystemObject")
+18	Set fld=fso.GetFolder(Server.MapPath(curPath))
+19	If curPath<>"./doc" Then
+20	　Response.Write "[<a href='cabi.asp?path=" & fld.ParentFolder & "'>"
+21	　Response.Write "上のフォルダへ</a>]"
+22	End If
+23	%>
+24	</td>
+25	</tr><tr>
+26	<td>
+27	<table border="1">
+28	<tr>
+29	　<th nowrap="nowrap">ファイル名</th>
+30	　<th nowrap="nowrap">サイズ</th>
+31	　<th nowrap="nowrap">ファイルタイプ</th>
+32	　<th nowrap="nowrap">最終更新日</th>
+33	　<th nowrap="nowrap">最終アクセス日</th>
+34	　<th nowrap="nowrap">初期作成日</th>
+35	</tr>
+36	<%
+37	For Each sFld In fld.SubFolders
+38	%>
+39	<tr>
+40	　<td nowrap="nowrap">
+41	　　<a href="cabi.asp?path=<%=Server.URLEncode(sFld.Path) %>">
+42	　　<%=sFld.Name %>
+43	　　</a></td>
+44	　<td nowrap="nowrap"><br /></td>
+45	　<td nowrap="nowrap">ファイル フォルダ</td>
+46	　<td nowrap="nowrap"><%=sfld.DateLastModified %></td>
+47	　<td nowrap="nowrap"><%=sfld.DateLastAccessed %></td>
+48	　<td nowrap="nowrap"><%=sfld.DateCreated %></td>
+49	</tr>
+50	<%
+51	Next
+#　現在のフォルダに含まれるサブフォルダ情報を表示します。
+#　FolderオブジェクトのSubFoldersプロパティは、フォルダ配下のサブフォルダをすべて含むFoldersコレクションを返します。ここでは、For Eachステートメントを利用して、Foldersコレクションに含まれるフォルダ情報を順番に取り出しています。
+#　なお、フォルダなので、ファイルタイプは固定値で「ファイルフォルダ」とします。
+52	For Each fl In fld.Files
+53	%>
+54	　<tr>
+55	　　<td nowrap="nowrap"><a href="<%=curPath & "/" & fl.Name %>">
+56	　　<%=fso.GetBaseName(fl.Path) %></a></td>
+57	　　<td nowrap><%=Int(fl.Size/1024) & "KB" %></td>
+58	　　<td nowrap><%=fl.Type %></td>
+59	　　<td nowrap><%=fl.DateLastModified %></td>
+60	　　<td nowrap><%=fl.DateLastAccessed %></td>
+61	　　<td nowrap><%=fl.DateCreated %></td>
+62	　</tr>
+63	<%
+64	Next
+65	%>
+66	</table>
+67	</body>
+68	</html>
+
+●TIPS
+△応用アプリケーション「webWare」
+　このフォルダシステムは、第3章でご紹介するアップロード機能と連動させることで、より総合的な文書管理機能を構築することも可能でしょう。第5章（P.○○）で紹介する応用アプリケーション「webWare」でも、本サンプルをバージョンアップした共用キャビネット機能を提供しているので、余力のある方はこちらもあわせて参照してみてください。

@@ -1,0 +1,47 @@
+■スクリプトのソースコードを公開したい
+
+このところ、自分の作ったスクリプトをサイト上で紹介するページが非常に多くなってきました。ただ、こういうサイトを構築する時にもっとも苦労するのが、他ならぬソースコードのリスト表示だったりします。タグを意味する「<」「>」の記号がブラウザにHTMLとして認識されてしまうために、いちいち代替文字としての「&lt;」「&gt;」に置き換えなければならないのです。
+もちろん、エディタの置換機能を使用して、一括して置き換えてもよいのですが、今度は必要なタグまで無効化されてしまいます。第一、既に完成しているソースをいちいちコピーして加工していたのではきりがありませんし、非効率的です。後でメンテナンスをおこなう時にも、非常に読みにくい状態になってしまっていることでしょう。
+そこでここでは、既に完成しているスクリプトのソースコードを、そのままブラウザに表示するスクリプトを紹介します。これを使って、皆さんもどんどん自分のノウハウを世界に向かって公開してください。
+
+●ポイント
+　表示する対象であるファイルを開くにはFileSystemObjectオブジェクトを、実際のテキストファイルの読みこみにはTextStreamオブジェクトを利用します。読みこまれたテキストは、ASPに用意されたHTMLEncodeメソッドを用いてHTMLエンコードすることで、ブラウザ上にそのまま表示することができます。
+　後は、読みこむファイルを外部から指定するために、以前も使用したクエリ情報を利用することにします。
+
+●サンプル
+□encode.asp
+1	<%@Language="VBScript" %>
+2	<html>
+3	<head>
+4	<title>ソースコードの表示</title>
+5	</head>
+6	<body>
+7	<pre>
+8	<%
+9	If Request.QueryString("file")="" Then
+10	　strFile="exam.asp"
+11	Else
+12	　strFile=Request.QueryString("file")
+13	End If
+#　読みこむソースを特定します。
+#　URL上、クエリ情報が無指定である場合（たとえば、http://localhost/sample/2.basic/srcEnc/encode.aspの場合）、デフォルトでexam.aspとします。
+#　もしも、URL上でクエリ情報がキー名"file"で指定されている場合（たとえば、http://localhost/sample/2.basic/srcEnc/encode.asp?file=cabi.aspの場合）、指定されたファイルを読みこむことにします。
+14	Set fs=Server.CreateObject("Scripting.FileSystemObject")
+#　FileSystemObjectオブジェクトを生成します。
+15	Set ts=fs.OpenTextFile(Server.MapPath("./doc/" & strFile))
+#　9～13行目で指定されたファイルを、配下のdocフォルダから開きます。MapPathメソッドは指定されたパスを絶対パスに変換します（詳細は、TIPSを参照してください）。
+#　OpenTextFileメソッドは、ファイルを操作するためのTextStreamオブジェクトを生成します。
+16	Do While Not ts.AtEndOfStream
+17	　Response.Write Server.HTMLEncode(ts.ReadLine) & "<br />"
+18	Loop
+#　テキストファイルを最終行（ts.AtEndOfStreamがTrue）になるまで、1行ずつ読みこみます。こうして、ファイル内の全データをシーケンシャルに読みこむことができます。
+19	%>
+20	</pre>
+21	</body>
+22	</html>
+
+●TIPS
+△HTMLEncodeメソッド
+　本項は、ちょっと風変わりなサンプルだったかもしれません。
+　しかし、ここで紹介したHTMLEncodeは非常に有効なメソッドです。
+　ASPで作られたWebアプリケーションでは、クライアント（ユーザ）が実にさまざまな文字情報を入力します。もちろん、その中には、正しい表示を妨げるような文字列が入っていることも多々あるでしょう。HTMLEncodeメソッドは、こうした状況下で有害な文字列を無害なものに変換してくれます。

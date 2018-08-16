@@ -1,0 +1,57 @@
+■エラーページをカスタマイズしたい
+
+ASP3.0では、ASPスクリプト実行時に発生するエラー情報を取得するために、ASPErrorオブジェクトが新たに用意されました。
+IIS5.0では、ASP実行エラーが発生した場合、標準のエラーページが用意されていますが、ここでは、これを設定変更してカスタマイズすることにしましょう。
+
+●ポイント
+　ASPErrorは、ASPで発生したエラーを取得し、エラー内容にアクセスするためのオブジェクトです。
+　標準で用意されているオブジェクトの中で唯一、直接にはアクセスすることのできないオブジェクトです。つまり、ServerオブジェクトにこれまたASP3.0から新しく実装されたGetLastErrorメソッドがありますが、これによってあらかじめASPErrorオブジェクトを生成する必要があります。
+　なお、本サンプルはASP3.0以上で動作するため、Windows2000+IIS5.0以上の環境が必要ですので、注意してください。
+
+●サンプル
+□aspErr.asp
+1	<%@Language="VBScript" %>
+2	<%
+3	On Error Resume Next
+#　エラー処理を有効にします。
+
+4	Set objErr=Server.GetLastError
+#　GetLastErrorメソッドは、最後に発生したASP実行時エラーを取得し、そのエラー情報を格納したASPErrorオブジェクトを返します。
+5	%>
+6	<html>
+7	<head>
+8	<title>カスタマイズされたエラー情報</title>
+9	<style type="text/css">
+10	dt{font-size:11pt;font-weight:bold;line-height:150%;}
+11	dd{font-size:10pt;}
+12	</style>
+13	</head>
+14	<body>
+15	<h1>ASPファイルでエラーが発生しました</h1>
+16	現在のページに問題が含まれているため、表示できません。<br />
+17	エラーに関する詳細情報は以下のとおりです。
+18	<hr />
+19	<dl>
+20	　<dt>・エラー元ファイル</dt>
+21	　<dd><%=objErr.File %>（<%=objErr.Number %>）</td>
+22	　<dt>・エラーの原因となっているソース</dt>
+23	　<dd><%=Server.HTMLEncode(objErr.Source) %></dd>
+24	　<dt>・エラーの発生元</dt>
+25	　<dd><%=objErr.Category %></dd>
+26	　<dt>・エラー発生箇所</dt>
+27	　<dd><%=objErr.Line %>行　<%=objErr.Column %>桁</dd>
+28	　<dt>・エラー詳細</dt>
+29	　<dd><%=Server.HTMLEncode(objErr.Description) %></dd>
+30	</dl>
+#　ASPErrorオブジェクトを介して、一連の実行時エラー情報を取得します。
+31	<hr />
+32	<div align="right">
+33	管理者連絡先：<a href="mailto:CQW15204@nifty.com">CQW15204@nifty.com</a>
+34	</div>
+35	</body>
+36	</html>
+
+●TIPS
+△500-100エラーページのカスタマイズ
+　500-100エラーは、ASP実行時エラーを示します。
+　IIS5.0では、標準で500-100エラー発生時のページを用意していますが、以下の方法で自分自身のカスタマイズページに変更することができます。本サンプルは、この設定をおこなってから実行してみてください。
