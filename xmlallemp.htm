@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+<head>
+<title>従業員番号から氏名表示</title>
+<script type="text/javascript" src="./funcs.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+function xmlFunc(){
+  var emp_id, emp_name;
+  var view = "<table width='300' border='1'>"
+  + "<tbody><tr><th>従業員番号</th><th>従業員氏名</th><th>所属</th>";
+
+  var xhrObj = getXhrObj();
+
+  xhrObj.open("get", "./book3Svlt?mode=allemp");
+  xhrObj.setRequestHeader("If-Modified-Since", "01 Jan 2000 00:00:00 GMT");
+  xhrObj.send(null);
+
+  xhrObj.onreadystatechange = function(){
+    if(xhrObj.readyState == 4){
+      if(xhrObj.status == 200){
+  			var resp_r = xhrObj.responseText.split("<r>");
+        for(var i=0;i<resp_r.length; i++){
+        	var resp = resp_r[i].split("<i>");
+        	view+="<tr><td> " + resp[0] + " </td><td> " + resp[1] +  " </td><td> " + resp[2] +  "</td></tr>";
+        }
+
+        view+="</tbody></table>";
+
+        document.getElementByd("view").innerHTML=view;
+
+
+			}
+		}
+	}
+}
+function initOnLoad(){
+	var target = document.getElementById("sel");
+  addListener(target, "click", xmlFunc);
+}
+setListener(window, "load", initOnLoad);
+//]]>
+</script>
+</head>
+<body>
+<center>
+<h3>従業員番号から氏名表示
+<input type="button" id="sel" value=" 表 示 "/>
+</h3>
+<div id="view"></div>
+</center>
+</body>
+</html>
